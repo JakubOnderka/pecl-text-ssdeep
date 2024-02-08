@@ -102,12 +102,15 @@ PHP_FUNCTION(ssdeep_fuzzy_hash) {
     char hash [FUZZY_MAX_RESULT];
     char *to_hash;
     size_t to_hash_len;
+    int res;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_STRING(to_hash, to_hash_len)
     ZEND_PARSE_PARAMETERS_END();
 
-    if (0 != fuzzy_hash_buf((unsigned char *) to_hash, (uint32_t)to_hash_len, (char*)&hash)) {
+    res = fuzzy_hash_buf((unsigned char *) to_hash, (uint32_t)to_hash_len, (char*)&hash);
+
+    if (UNEXPECTED(0 != res)) {
         RETURN_FALSE;
     } else {
         RETURN_STRING((char*)&hash);
@@ -121,12 +124,15 @@ PHP_FUNCTION(ssdeep_fuzzy_hash_filename) {
     char *file_name;
     size_t file_name_len;
     char hash [FUZZY_MAX_RESULT];
+    int res;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_STRING(file_name, file_name_len)
     ZEND_PARSE_PARAMETERS_END();
 
-    if (0 != fuzzy_hash_filename(file_name, (char*)&hash)) {
+    res = fuzzy_hash_filename(file_name, (char*)&hash);
+
+    if (UNEXPECTED(0 != res)) {
         RETURN_FALSE;
     } else {
         RETURN_STRING((char*)&hash);
@@ -150,9 +156,9 @@ PHP_FUNCTION(ssdeep_fuzzy_compare) {
 
     match = fuzzy_compare(signature1, signature2);
 
-	if (UNEXPECTED(match < 0 || match > 100)) {
-	    RETURN_FALSE;
-	} else {
+    if (UNEXPECTED(match < 0 || match > 100)) {
+        RETURN_FALSE;
+    } else {
         RETURN_LONG(match);
 	}
 }
