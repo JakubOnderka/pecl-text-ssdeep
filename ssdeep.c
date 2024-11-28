@@ -48,6 +48,11 @@
 #include "php_ssdeep.h"
 #include <fuzzy.h>
 
+#ifndef ZVAL_EMPTY_ARRAY
+#define ZVAL_EMPTY_ARRAY(_a) array_init(_a);
+#endif
+
+
 /* True global resources - no need for thread safety here */
 ZEND_BEGIN_ARG_INFO_EX(arginfo_ssdeep_fuzzy_hash, 0, 0, 1)
     ZEND_ARG_INFO(0, to_hash)
@@ -62,12 +67,20 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_ssdeep_fuzzy_compare, 0, 0, 2)
     ZEND_ARG_INFO(0, signature2)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssdeep_fuzzy_compare_multiple, 0, 0, 3)
+    ZEND_ARG_INFO(0, signature)
+    ZEND_ARG_INFO(0, signatures)
+    ZEND_ARG_INFO(0, threshold)
+    ZEND_ARG_INFO(0, preserve_keys)
+ZEND_END_ARG_INFO()
+
 /* {{{ ssdeep_functions[]
  */
 const zend_function_entry ssdeep_functions[] = {
     PHP_FE(ssdeep_fuzzy_hash, arginfo_ssdeep_fuzzy_hash)
     PHP_FE(ssdeep_fuzzy_hash_filename, arginfo_ssdeep_fuzzy_hash_filename)
     PHP_FE(ssdeep_fuzzy_compare, arginfo_ssdeep_fuzzy_compare)
+    PHP_FE(ssdeep_fuzzy_compare_multiple, arginfo_ssdeep_fuzzy_compare_multiple)
     PHP_FE_END
 };
 /* }}} */
@@ -111,6 +124,7 @@ PHP_FUNCTION(ssdeep_fuzzy_hash) {
     res = fuzzy_hash_buf((unsigned char *) to_hash, (uint32_t)to_hash_len, (char*)ZSTR_VAL(str));
 
     if (UNEXPECTED(0 != res)) {
+        zend_string_release(str);
         RETURN_FALSE;
     } else {
         ZSTR_LEN(str) = strlen(ZSTR_VAL(str));
@@ -134,6 +148,7 @@ PHP_FUNCTION(ssdeep_fuzzy_hash_filename) {
     res = fuzzy_hash_filename(file_name, (char*)ZSTR_VAL(str));
 
     if (UNEXPECTED(0 != res)) {
+        zend_string_release(str);
         RETURN_FALSE;
     } else {
         ZSTR_LEN(str) = strlen(ZSTR_VAL(str));
@@ -162,6 +177,76 @@ PHP_FUNCTION(ssdeep_fuzzy_compare) {
         RETURN_FALSE;
     } else {
         RETURN_LONG(match);
+    }
+}
+/* }}} */
+
+/* {{{ proto array ssdeep_fuzzy_compare(string signature1, array signature2, int threshold, bool preserve_keys = false)
+ */
+PHP_FUNCTION(ssdeep_fuzzy_compare_multiple) {
+    char *signature = NULL;
+    size_t signature_len;
+    HashTable *signatures;
+    zend_long threshold;
+    zval *input_value;
+    zval output_value;
+    int match;
+    zend_bool preserve_keys = 0;
+
+    ZEND_PARSE_PARAMETERS_START(3, 4)
+        Z_PARAM_STRING(signature, signature_len)
+        Z_PARAM_ARRAY_HT(signatures)
+        Z_PARAM_LONG(threshold)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_BOOL(preserve_keys)
+    ZEND_PARSE_PARAMETERS_END();
+
+    if (zend_hash_num_elements(signatures) == 0) {
+        ZVAL_EMPTY_ARRAY(return_value);
+        return;
+    }
+
+    array_init(return_value);
+
+    if (preserve_keys) {
+        zend_ulong idx;
+        zend_string *key;
+
+        ZEND_HASH_FOREACH_KEY_VAL(signatures, idx, key, input_value) {
+            if (UNEXPECTED(Z_TYPE_P(input_value) != IS_STRING)) {
+                continue;
+            }
+
+            match = fuzzy_compare(signature, ZSTR_VAL(Z_STR_P(input_value)));
+            if (match < 0 || match > 100 || match < threshold) {
+                continue;
+            }
+
+            ZVAL_STR(&output_value, zend_string_copy(Z_STR_P(input_value)));
+
+            if (key) {
+                zend_hash_add(Z_ARRVAL_P(return_value), key, &output_value);
+            } else {
+                zend_hash_index_add(Z_ARRVAL_P(return_value), idx, &output_value);
+            }
+
+        } ZEND_HASH_FOREACH_END();
+
+    } else {
+        ZEND_HASH_FOREACH_VAL(signatures, input_value) {
+            if (UNEXPECTED(Z_TYPE_P(input_value) != IS_STRING)) {
+                continue;
+            }
+
+            match = fuzzy_compare(signature, ZSTR_VAL(Z_STR_P(input_value)));
+            if (match < 0 || match > 100 || match < threshold) {
+                continue;
+            }
+
+            ZVAL_STR(&output_value, zend_string_copy(Z_STR_P(input_value)));
+
+            zend_hash_next_index_insert(Z_ARRVAL_P(return_value), &output_value);
+        } ZEND_HASH_FOREACH_END();
     }
 }
 /* }}} */
