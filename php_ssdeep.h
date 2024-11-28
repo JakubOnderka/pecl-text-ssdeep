@@ -43,6 +43,7 @@
     #define PHP_SSDEEP_EXTNAME "ssdeep"
     PHP_FUNCTION(ssdeep_fuzzy_hash);
     PHP_FUNCTION(ssdeep_fuzzy_compare);
+    PHP_FUNCTION(ssdeep_fuzzy_compare_multiple);
     PHP_FUNCTION(ssdeep_fuzzy_hash_filename);
 
     extern zend_module_entry php_ssdeep_module_entry;

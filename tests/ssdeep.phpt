@@ -37,6 +37,15 @@ var_dump($match2);
 
 $match3 = ssdeep_fuzzy_compare($hash3, $hash4);
 var_dump($match3);
+
+$matches = ssdeep_fuzzy_compare_multiple($hash1, [$hash2, $hash3, $hash4, 'invalid'], 40);
+var_dump($matches);
+
+$matches = ssdeep_fuzzy_compare_multiple($hash1, [3 => $hash2, 2 => $hash3, 1 => $hash4, 'invalid'], 50, false);
+var_dump($matches);
+
+$matches = ssdeep_fuzzy_compare_multiple($hash1, [3 => $hash2, 2 => $hash3, 1 => $hash4, 'invalid'], 50, true);
+var_dump($matches);
 ?>
 --CLEAN--
 <?php
@@ -53,3 +62,23 @@ string(100) "48:9lUajiiPbbnr4RSXqMbLbmo03Rcq0K/cvhQ+3/M8M5BEaB1UlUajiiPbbnr4RSXX
 int(57)
 int(75)
 int(63)
+array(3) {
+  [0]=>
+  string(76) "48:9lUajiiPbbnr4RSXqMbLbmo03Rcq0K/cvhQ+3/M8M5BEaB6:9HFHsGqabmoMR18hQ+308sBdk"
+  [1]=>
+  string(100) "48:9lUajiiPbbnr4RSXqMbppMZ4twUlUajiiPbbnr4RSXqMbLbmo03Rcq0K/cvhQ+3X:9HFHsGqCM6tNHFHsGqabmoMR18hQ+30k"
+  [2]=>
+  string(100) "48:9lUajiiPbbnr4RSXqMbLbmo03Rcq0K/cvhQ+3/M8M5BEaB1UlUajiiPbbnr4RSXX:9HFHsGqabmoMR18hQ+308sBdsHFHsGqy"
+}
+array(2) {
+  [0]=>
+  string(76) "48:9lUajiiPbbnr4RSXqMbLbmo03Rcq0K/cvhQ+3/M8M5BEaB6:9HFHsGqabmoMR18hQ+308sBdk"
+  [1]=>
+  string(100) "48:9lUajiiPbbnr4RSXqMbppMZ4twUlUajiiPbbnr4RSXqMbLbmo03Rcq0K/cvhQ+3X:9HFHsGqCM6tNHFHsGqabmoMR18hQ+30k"
+}
+array(2) {
+  [3]=>
+  string(76) "48:9lUajiiPbbnr4RSXqMbLbmo03Rcq0K/cvhQ+3/M8M5BEaB6:9HFHsGqabmoMR18hQ+308sBdk"
+  [2]=>
+  string(100) "48:9lUajiiPbbnr4RSXqMbppMZ4twUlUajiiPbbnr4RSXqMbLbmo03Rcq0K/cvhQ+3X:9HFHsGqCM6tNHFHsGqabmoMR18hQ+30k"
+}
