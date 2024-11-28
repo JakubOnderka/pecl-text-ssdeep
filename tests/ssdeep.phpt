@@ -44,7 +44,7 @@ var_dump($matches);
 $matches = ssdeep_fuzzy_compare_multiple($hash1, [3 => $hash2, 2 => $hash3, 1 => $hash4, 'invalid'], 50, false);
 var_dump($matches);
 
-$matches = ssdeep_fuzzy_compare_multiple($hash1, [3 => $hash2, 2 => $hash3, 1 => $hash4, 'invalid'], 50, true);
+$matches = ssdeep_fuzzy_compare_multiple($hash1, [3 => $hash2, 2 => $hash3, 1 => $hash4, 'hash3' => $hash3, 'invalid'], 50, true);
 var_dump($matches);
 ?>
 --CLEAN--
@@ -76,9 +76,11 @@ array(2) {
   [1]=>
   string(100) "48:9lUajiiPbbnr4RSXqMbppMZ4twUlUajiiPbbnr4RSXqMbLbmo03Rcq0K/cvhQ+3X:9HFHsGqCM6tNHFHsGqabmoMR18hQ+30k"
 }
-array(2) {
+array(3) {
   [3]=>
   string(76) "48:9lUajiiPbbnr4RSXqMbLbmo03Rcq0K/cvhQ+3/M8M5BEaB6:9HFHsGqabmoMR18hQ+308sBdk"
   [2]=>
+  string(100) "48:9lUajiiPbbnr4RSXqMbppMZ4twUlUajiiPbbnr4RSXqMbLbmo03Rcq0K/cvhQ+3X:9HFHsGqCM6tNHFHsGqabmoMR18hQ+30k"
+  ["hash3"]=>
   string(100) "48:9lUajiiPbbnr4RSXqMbppMZ4twUlUajiiPbbnr4RSXqMbLbmo03Rcq0K/cvhQ+3X:9HFHsGqCM6tNHFHsGqabmoMR18hQ+30k"
 }

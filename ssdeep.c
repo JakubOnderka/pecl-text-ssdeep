@@ -189,7 +189,6 @@ PHP_FUNCTION(ssdeep_fuzzy_compare_multiple) {
     HashTable *signatures;
     zend_long threshold;
     zval *input_value;
-    zval output_value;
     int match;
     zend_bool preserve_keys = 0;
 
@@ -222,14 +221,12 @@ PHP_FUNCTION(ssdeep_fuzzy_compare_multiple) {
                 continue;
             }
 
-            ZVAL_STR(&output_value, zend_string_copy(Z_STR_P(input_value)));
-
             if (key) {
-                zend_hash_add(Z_ARRVAL_P(return_value), key, &output_value);
+                zend_hash_add_new(Z_ARRVAL_P(return_value), key, input_value);
             } else {
-                zend_hash_index_add(Z_ARRVAL_P(return_value), idx, &output_value);
+                zend_hash_index_add_new(Z_ARRVAL_P(return_value), idx, input_value);
             }
-
+            zval_add_ref(input_value);
         } ZEND_HASH_FOREACH_END();
 
     } else {
@@ -243,9 +240,8 @@ PHP_FUNCTION(ssdeep_fuzzy_compare_multiple) {
                 continue;
             }
 
-            ZVAL_STR(&output_value, zend_string_copy(Z_STR_P(input_value)));
-
-            zend_hash_next_index_insert(Z_ARRVAL_P(return_value), &output_value);
+            zend_hash_next_index_insert_new(Z_ARRVAL_P(return_value), input_value);
+            zval_add_ref(input_value);
         } ZEND_HASH_FOREACH_END();
     }
 }
