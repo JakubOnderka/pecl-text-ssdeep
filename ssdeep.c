@@ -99,7 +99,6 @@ PHP_MINFO_FUNCTION(ssdeep) {
 /* {{{ proto string ssdeep_fuzzy_hash(string to_hash)
  */
 PHP_FUNCTION(ssdeep_fuzzy_hash) {
-    char hash [FUZZY_MAX_RESULT];
     char *to_hash;
     size_t to_hash_len;
     int res;
@@ -108,12 +107,14 @@ PHP_FUNCTION(ssdeep_fuzzy_hash) {
         Z_PARAM_STRING(to_hash, to_hash_len)
     ZEND_PARSE_PARAMETERS_END();
 
-    res = fuzzy_hash_buf((unsigned char *) to_hash, (uint32_t)to_hash_len, (char*)&hash);
+    zend_string *str = zend_string_alloc(FUZZY_MAX_RESULT, 0);
+    res = fuzzy_hash_buf((unsigned char *) to_hash, (uint32_t)to_hash_len, (char*)ZSTR_VAL(str));
 
     if (UNEXPECTED(0 != res)) {
         RETURN_FALSE;
     } else {
-        RETURN_STRING((char*)&hash);
+        ZSTR_LEN(str) = strlen(ZSTR_VAL(str));
+        RETURN_STR(str);
     }
 }
 /* }}} */
@@ -123,19 +124,20 @@ PHP_FUNCTION(ssdeep_fuzzy_hash) {
 PHP_FUNCTION(ssdeep_fuzzy_hash_filename) {
     char *file_name;
     size_t file_name_len;
-    char hash [FUZZY_MAX_RESULT];
     int res;
 
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_STRING(file_name, file_name_len)
     ZEND_PARSE_PARAMETERS_END();
 
-    res = fuzzy_hash_filename(file_name, (char*)&hash);
+    zend_string *str = zend_string_alloc(FUZZY_MAX_RESULT, 0);
+    res = fuzzy_hash_filename(file_name, (char*)ZSTR_VAL(str));
 
     if (UNEXPECTED(0 != res)) {
         RETURN_FALSE;
     } else {
-        RETURN_STRING((char*)&hash);
+        ZSTR_LEN(str) = strlen(ZSTR_VAL(str));
+        RETURN_STR(str);
     }
 }
 /* }}} */
@@ -160,7 +162,7 @@ PHP_FUNCTION(ssdeep_fuzzy_compare) {
         RETURN_FALSE;
     } else {
         RETURN_LONG(match);
-	}
+    }
 }
 /* }}} */
 
